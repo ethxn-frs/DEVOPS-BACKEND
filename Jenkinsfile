@@ -8,7 +8,7 @@ pipeline {
         DB_USER = 'articles_user'
         DB_PASSWORD = 'articles_password'
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-id')
-        DOCKERHUB_CREDENTIALS = credentials('github-token')
+        GITHUB_CREDENTIALS = credentials('github-token')
     }
 
     stages {
@@ -17,6 +17,12 @@ pipeline {
                 git branch: 'main',
                     url: 'https://github.com/ethxn-frs/DEVOPS-BACKEND',
                     credentialsId: 'github-token'
+            }
+        }
+
+        stage('Install Pip') {
+            steps {
+                sh 'pip install '
             }
         }
 
