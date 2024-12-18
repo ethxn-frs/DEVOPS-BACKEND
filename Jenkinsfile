@@ -20,12 +20,6 @@ pipeline {
             }
         }
 
-        stage('Install Pip') {
-            steps {
-                sh 'pip install '
-            }
-        }
-
         stage('Check Environment') {
             steps {
                 sh '''
