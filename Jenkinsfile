@@ -8,6 +8,7 @@ pipeline {
         DB_USER = 'articles_user'
         DB_PASSWORD = 'articles_password'
         DOCKERHUB_CREDENTIALS = credentials('dockerhub-id')
+        DOCKERHUB_CREDENTIALS = credentials('github-token')
     }
 
     stages {
@@ -24,9 +25,10 @@ pipeline {
                 sh '''
                 python3 --version
                 which python3
-                which pip
+                python3 -m pip --version || echo "pip not installed"
+                docker info || echo "Docker Daemon not accessible"
                 docker --version
-                docker compose version
+                docker compose version || echo "Docker Compose not found"
                 '''
             }
         }
@@ -34,8 +36,8 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 sh '''
-                python3 -m ensurepip --upgrade
-                python3 -m pip install --upgrade pip
+                python3 -m ensurepip --upgrade || true
+                python3 -m pip install --upgrade pip setuptools wheel
                 python3 -m pip install -r requirements/dev.txt
                 '''
             }
@@ -43,7 +45,9 @@ pipeline {
 
         stage('Run Database') {
             steps {
-                sh '/usr/local/bin/docker compose up -d'
+                sh '''
+                docker compose up -d
+                '''
             }
         }
 
@@ -88,7 +92,7 @@ pipeline {
 
     post {
         always {
-            sh '/usr/local/bin/docker compose down || true'
+            sh 'docker compose down || true'
         }
         success {
             echo 'Pipeline completed successfully!'
