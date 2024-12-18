@@ -13,40 +13,42 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/ethxn-frs/DEVOPS-BACKEND', credentialsId: 'github-token'
+                git branch: 'main',
+                    url: 'https://github.com/ethxn-frs/DEVOPS-BACKEND',
+                    credentialsId: 'github-token'
             }
         }
 
-        stage('Check Python Version') {
+        stage('Check Environment') {
             steps {
                 sh '''
                 python3 --version
-                pip --version
+                which python3
+                which pip
+                docker --version
+                docker compose version
                 '''
             }
         }
 
         stage('Setup Environment') {
             steps {
-                echo 'Setting up Python virtual environment...'
                 sh '''
-                python3 -m venv venv
-                source venv/bin/activate
-                pip install -r requirements/dev.txt
+                python3.9 -m ensurepip --upgrade
+                python3.9 -m pip install --upgrade pip
+                python3.9 -m pip install -r requirements/dev.txt
                 '''
             }
         }
 
         stage('Run Database') {
             steps {
-                echo 'Starting database using Docker Compose...'
-                sh 'docker compose up -d'
+                sh '/usr/local/bin/docker compose up -d'
             }
         }
 
         stage('Run Migrations and Load Data') {
             steps {
-                echo 'Running migrations and loading data...'
                 sh '''
                 source venv/bin/activate
                 python manage.py migrate
@@ -57,7 +59,6 @@ pipeline {
 
         stage('Run Unit Tests') {
             steps {
-                echo 'Running unit tests...'
                 sh '''
                 source venv/bin/activate
                 python manage.py test
@@ -67,7 +68,6 @@ pipeline {
 
         stage('Linting') {
             steps {
-                echo 'Checking code quality...'
                 sh '''
                 source venv/bin/activate
                 ruff check
@@ -77,7 +77,6 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                echo 'Building and pushing Docker image...'
                 sh '''
                 docker build -t ethxn/backend:latest .
                 docker login -u $DOCKERHUB_CREDENTIALS_USR -p $DOCKERHUB_CREDENTIALS_PSW
@@ -85,19 +84,11 @@ pipeline {
                 '''
             }
         }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deploying application...'
-                sh 'docker compose up -d'
-            }
-        }
     }
 
     post {
         always {
-            echo 'Cleaning up resources...'
-            sh 'docker compose down || true'
+            sh '/usr/local/bin/docker compose down || true'
         }
         success {
             echo 'Pipeline completed successfully!'
