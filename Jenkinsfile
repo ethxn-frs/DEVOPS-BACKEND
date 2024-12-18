@@ -18,7 +18,7 @@ pipeline {
                     url: 'https://github.com/ethxn-frs/DEVOPS-BACKEND',
                     credentialsId: 'github-token'
             }
-        }
+        }   
 
         stage('Check Environment') {
             steps {
@@ -27,7 +27,8 @@ pipeline {
                 which python3
                 python3 -m pip --version || echo "pip not installed"
                 docker info || echo "Docker Daemon not accessible"
-                docker --version
+                docker --version || echo "Docker not installed"
+                docker info || echo "Docker daemon not accessible"
                 docker compose version || echo "Docker Compose not found"
                 '''
             }
