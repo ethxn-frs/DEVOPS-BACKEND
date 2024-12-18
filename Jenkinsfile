@@ -34,9 +34,9 @@ pipeline {
         stage('Setup Environment') {
             steps {
                 sh '''
-                python3.9 -m ensurepip --upgrade
-                python3.9 -m pip install --upgrade pip
-                python3.9 -m pip install -r requirements/dev.txt
+                python3 -m ensurepip --upgrade
+                python3 -m pip install --upgrade pip
+                python3 -m pip install -r requirements/dev.txt
                 '''
             }
         }
