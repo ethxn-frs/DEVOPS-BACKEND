@@ -13,8 +13,7 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                echo 'Cloning repository...'
-                git branch: 'main', url: 'https://github.com/ethxn-frs/DEVOPS-BACKEND'
+                git branch: 'main', url: 'https://github.com/ethxn-frs/DEVOPS-BACKEND', credentialsId: 'github-token'
             }
         }
 
@@ -22,7 +21,7 @@ pipeline {
             steps {
                 echo 'Setting up Python virtual environment...'
                 sh '''
-                python -m venv venv
+                python3 -m venv venv
                 source venv/bin/activate
                 pip install -r requirements/dev.txt
                 '''
@@ -38,7 +37,7 @@ pipeline {
 
         stage('Run Migrations and Load Data') {
             steps {
-                echo 'Running database migrations and loading fixtures...'
+                echo 'Running migrations and loading data...'
                 sh '''
                 source venv/bin/activate
                 python manage.py migrate
@@ -59,7 +58,7 @@ pipeline {
 
         stage('Linting') {
             steps {
-                echo 'Checking code quality with Ruff...'
+                echo 'Checking code quality...'
                 sh '''
                 source venv/bin/activate
                 ruff check
@@ -80,11 +79,8 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo 'Deploying backend to the server...'
-                sh '''
-                # Example deployment steps if using Docker Compose
-                docker compose up -d
-                '''
+                echo 'Deploying application...'
+                sh 'docker compose up -d'
             }
         }
     }
