@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: devops-backend
+  labels:
+    app: devops-backend
+spec:
+  replicas: 1  # Nombre de pods
+  selector:
+    matchLabels:
+      app: devops-backend
+  template:
+    metadata:
+      labels:
+        app: devops-backend
+    spec:
+      containers:
+        - name: devops-backend
+          image: etangesgi/devops-backend:latest  # Ton image Docker
+          ports:
+            - containerPort: 8000  # Port exposé dans le conteneur
+          env: # Variables d'environnement nécessaires
+            - name: DB_HOST
+              value: "db"
+            - name: DB_PORT
+              value: "5432"
+            - name: DB_NAME
+              value: "articles_db"
+            - name: DB_USER
+              value: "articles_user"
+            - name: DB_PASSWORD
+              value: "articles_password"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: devops-backend-service
+spec:
+  selector:
+    app: devops-backend
+  ports:
+    - protocol: TCP
+      port: 8000  # Port exposé par le service
+      targetPort: 8000  # Port exposé par le pod
+  type: LoadBalancer  # Rend le service accessible depuis l'extérieur
