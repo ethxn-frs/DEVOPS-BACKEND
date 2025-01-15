@@ -9,6 +9,21 @@ jobs:
   build-test-publish:
     runs-on: ubuntu-latest  # Utilise une machine virtuelle Ubuntu
 
+    services:
+      postgres: # Ajout du service PostgreSQL
+        image: postgres:14
+        env:
+          POSTGRES_USER: articles_user
+          POSTGRES_PASSWORD: articles_password
+          POSTGRES_DB: articles_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U articles_user"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       # Étape 1 : Télécharger le code source
       - name: Checkout code
@@ -27,18 +42,32 @@ jobs:
           source venv/bin/activate  # Active l'environnement virtuel
           pip install -r requirements/dev.txt  # Installe les dépendances nécessaires
 
-      # Étape 4 : Exécuter les tests unitaires
+      # Étape 4 : Attendre que PostgreSQL soit prêt
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U articles_user; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      # Étape 5 : Exécuter les tests unitaires
       - name: Run unit tests
+        env:
+          DB_HOST: 127.0.0.1
+          DB_PORT: 5432
+          DB_NAME: articles_db
+          DB_USER: articles_user
+          DB_PASSWORD: articles_password
         run: |
           source venv/bin/activate
           python manage.py test
 
-      # Étape 5 : Construire une image Docker
+      # Étape 6 : Construire une image Docker
       - name: Build Docker image
         run: |
           docker build -t etangesgi/devops-backend:latest .
 
-      # Étape 6 : Pousser l'image Docker sur Docker Hub
+      # Étape 7 : Pousser l'image Docker sur Docker Hub
       - name: Push Docker image to Docker Hub
         run: |
           echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
