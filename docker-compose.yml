@@ -1,14 +1,18 @@
 services:
   db:
-    image: postgres:17.2
+    image: postgres:14
     environment:
-      POSTGRES_DB: articles_db
       POSTGRES_USER: articles_user
       POSTGRES_PASSWORD: articles_password
+      POSTGRES_DB: articles_db
     ports:
       - "5432:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck: # Ajoute un contrôle de santé pour PostgreSQL
+      test: [ "CMD", "pg_isready", "-U", "articles_user" ]
+      interval: 10s
+      retries: 5
 
   backend:
     build:
@@ -22,7 +26,11 @@ services:
     ports:
       - "8000:8000"
     depends_on:
-      - db
+      db:
+        condition: service_healthy  # Attend que PostgreSQL soit prêt
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py runserver 0.0.0.0:8000"  # Lancement automatique
 
 volumes:
   db_data:
