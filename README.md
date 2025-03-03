@@ -9,7 +9,7 @@ To run this project locally, you will need :
 ## Create a virtual env
 
 Create a virtual environment to install dependencies : 
-
+ 
 ```shell
 python -m venv venv
 source venv/bin/activate # For Linux/Mac
