@@ -21,7 +21,7 @@ spec:
             - containerPort: 8000  # Port exposé dans le conteneur
           env: # Variables d'environnement nécessaires
             - name: DB_HOST
-              value: "db"
+              value: postgres-service
             - name: DB_PORT
               value: "5432"
             - name: DB_NAME
