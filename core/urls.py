@@ -15,10 +15,15 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+from django.http import JsonResponse
 from django.urls import path
-
 from articles.views import articles_view
+
+
+def health_check(request):
+    return JsonResponse({"status": "ok"}, status=200)
 
 urlpatterns = [
     path("articles", articles_view, name="articles"),
+    path("health/", health_check, name="health_check"),
 ]
